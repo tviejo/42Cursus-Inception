@@ -24,7 +24,9 @@ else
 
     # Append configurations to wp-config.php
     echo "define('FORCE_SSL_ADMIN', true);" >> /var/www/html/wp-config.php
-    echo "\$_SERVER['HTTPS'] = 'on';" >> /var/www/html/wp-config.php
+    echo "if (strpos(\$_SERVER['HTTP_X_FORWARDED_PROTO'], 'https') !== false) {" >> /var/www/html/wp-config.php
+    echo "    \$_SERVER['HTTPS'] = 'on';" >> /var/www/html/wp-config.php
+    echo "}" >> /var/www/html/wp-config.php
 fi
 
 # Install WordPress
@@ -37,6 +39,9 @@ wp user create "${WP_ADMIN_USER}" "${WP_ADMIN_EMAIL}" --role=administrator --use
 
 # Create an additional user
 wp user create "${WP_USER}" "${WP_USER_EMAIL}" --role=author --user_pass="${WP_USER_PASSWORD}" --allow-root
+
+wp cache flush --allow-root
+wp rewrite flush --allow-root
 
 # Start PHP-FPM in the foreground
 exec php-fpm7.4 -F
