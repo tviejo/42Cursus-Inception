@@ -1,29 +1,22 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: yourlogin <yourlogin@student.42.fr>        +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: YYYY/MM/DD HH:MM:SS by yourlogin        #+#    #+#              #
-#    Updated: YYYY/MM/DD HH:MM:SS by yourlogin       ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
 NAME = inception
 
 all: up
 
 up:
-	docker-compose -f srcs/docker-compose.yml up --build -d
+	sudo mkdir -p /home/thomas/data/mariadb
+	sudo mkdir -p /home/thomas/data/wordpress
+	sudo mkdir -p /var/www/html
+	docker-compose -f srcs/docker-compose.yml up --build --force-recreate --no-deps -d
 
 down:
 	docker-compose -f srcs/docker-compose.yml down
 
 clean: down
 	docker system prune -af
-	sudo rm -rf /home/thomas/data/db
+	docker volume prune -f
+	sudo rm -rf /home/thomas/data/mariadb
 	sudo rm -rf /home/thomas/data/wordpress
+	sudo rm -rf /var/www/html
 
 re: clean all
 

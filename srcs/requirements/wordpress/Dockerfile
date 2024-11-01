@@ -1,30 +1,29 @@
-# Use the penultimate stable version of Debian
-FROM debian:buster-slim
+FROM debian:bullseye
 
-# Install necessary packages
-RUN apt-get update && apt-get install -y \
-    php7.3-fpm \
-    php7.3-mysql \
-    wget \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get upgrade -y 
 
-# Create /var/www/html directory
-RUN mkdir -p /var/www/html
+RUN apt-get install -y net-tools
 
-# Download and extract WordPress
-RUN wget https://wordpress.org/latest.tar.gz -O /tmp/wordpress.tar.gz && \
-    tar -xzf /tmp/wordpress.tar.gz -C /var/www/html --strip-components=1 && \
-    rm /tmp/wordpress.tar.gz
+RUN apt-get install -y php7.4-fpm curl php-mysql mariadb-client
 
-# Copy the startup script
-COPY tools/setup.sh /usr/local/bin/
+RUN mkdir -p /run/php && chmod 755 /run/php
 
-# Make the script executable
-RUN chmod +x /usr/local/bin/setup.sh
+COPY conf/www.conf /etc/php/7.4/fpm/pool.d/
 
-# Expose port 9000
+RUN chmod 644 /etc/php/7.4/fpm/pool.d/www.conf
+
+RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+
+RUN chmod +x wp-cli.phar
+
+RUN mv wp-cli.phar /usr/local/bin/wp
+
+COPY tools/script.sh /usr/local/bin/script.sh
+
+RUN chmod +x /usr/local/bin/script.sh
+
 EXPOSE 9000
 
-# Start PHP-FPM
-CMD ["setup.sh"]
+WORKDIR /var/www/html
+
+CMD ["sh", "/usr/local/bin/script.sh"]

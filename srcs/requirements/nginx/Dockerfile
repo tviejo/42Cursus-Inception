@@ -1,31 +1,17 @@
-# Use the penultimate stable version of Debian
-FROM debian:buster-slim
+FROM debian:bullseye
 
-# Install NGINX and OpenSSL
-RUN apt-get update && apt-get install -y \
-    nginx \
-    openssl \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y nginx curl openssl
 
-# Set up an ARG for the domain name to be used in SSL generation
-ARG DOMAIN_NAME
+RUN mkdir -p /etc/nginx/ssl && chmod 755 /etc/nginx/ssl &&\
+	openssl req -x509 -nodes -out /etc/nginx/ssl/inception.crt -keyout /etc/nginx/ssl/inception.key -subj "/C=FR/ST=IDF/L=Paris/O=42/OU=42/CN=tviejo.42.fr/UID=tviejo"
 
-# Create the SSL directory
-RUN mkdir -p /etc/nginx/ssl
+RUN mkdir -p /var/run/nginx
 
-# Copy NGINX configuration
 COPY conf/nginx.conf /etc/nginx/nginx.conf
 
-# Generate SSL certificate with the DOMAIN_NAME argument
-RUN openssl req -x509 -nodes -days 365 \
-    -subj "/C=FR/ST=France/L=Paris/O=42 School/OU=Student/CN=${DOMAIN_NAME}" \
-    -newkey rsa:2048 \
-    -keyout /etc/nginx/ssl/${DOMAIN_NAME}.key \
-    -out /etc/nginx/ssl/${DOMAIN_NAME}.crt
+RUN mkdir -p /var/www/html/ && chmod 755 /var/www/html && chown -R www-data:www-data /var/www/html
 
-# Expose port 443
 EXPOSE 443
 
-# Start NGINX in the foreground
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/usr/sbin/nginx", "-g", "daemon off;"]
 
