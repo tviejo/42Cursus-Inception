@@ -1,23 +1,17 @@
-NAME = inception
+build:
+	sudo mkdir -p /home/tviejo/data/mariadb && sudo mkdir -p /home/tviejo/data/wordpress
+	cd srcs && docker compose up --build -d
 
-all: up
+clean:
+	docker compose -f ./srcs/docker-compose.yml down
 
-up:
-	sudo mkdir -p /home/thomas/data/mariadb
-	sudo mkdir -p /home/thomas/data/wordpress
-	sudo mkdir -p /var/www/html
-	docker-compose -f srcs/docker-compose.yml up --build --force-recreate --no-deps -d
+fclean: clean
+	@- docker system prune -a -f
+	@- docker volume rm mariadb wordpress
+	@- sudo rm -rf  /home/tviejo/data/mariadb
+	@- sudo rm -rf /home/tviejo/data/wordpress
 
-down:
-	docker-compose -f srcs/docker-compose.yml down
-
-clean: down
-	docker system prune -af
-	docker volume prune -f
-	sudo rm -rf /home/thomas/data/mariadb
-	sudo rm -rf /home/thomas/data/wordpress
-	sudo rm -rf /var/www/html
-
-re: clean all
-
-.PHONY: all up down clean re
+mariadb:
+	@- docker exec -it mariadb /bin/bash		
+	
+rebuild: fclean build
