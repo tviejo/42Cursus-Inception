@@ -68,7 +68,7 @@ services:
       mariadb:
         condition: service_healthy
     healthcheck:
-      test: netstat -an | grep 9000 > /dev/null; if [ $$? != 0 ]; then exit 1; fi;
+      test: netstat -an | grep 9000 > /dev/null || exit 1
       interval: 10s
       retries: 5
       start_period: 10s
